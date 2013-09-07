@@ -11,7 +11,8 @@ from url_uniq import url_uniq
 from SAEKVDBPlugin import SAEKVDBPlugin
 from qrcode import make as makeqrcode
 from StringIO import StringIO
-#from short_rewriter import real_url
+from bottle_mysql import Plugin as MySQLPlugin
+import sae.const
 
 #MAX = 62 ** 5
 MAX = 916132832
@@ -22,6 +23,7 @@ def hashto62(url):
 	return int(m.hexdigest(), 16) % MAX
 
 kv_plugin = SAEKVDBPlugin()
+mysql_plugin = MySQLPlugin(dbuser = sae.const.MYSQL_USER , dbpass = sae.const.MYSQL_PASS, dbname = sae.const.MYSQL_DB, dbhost = sae.const.MYSQL_HOST , dbport = int(sae.const.MYSQL_PORT))
 
 @error(404)
 @route('/')
@@ -71,8 +73,8 @@ def qrcode(key, kv):
 	
     abort(404, "NOT FOUND")
 
-@route('/d/save', method='POST', apply=[kv_plugin])
-def save(kv):
+@route('/d/save', method='POST', apply=[kv_plugin, mysql_plugin])
+def save(kv, db):
     key = None
     err = None
 
@@ -81,10 +83,14 @@ def save(kv):
         url = url_uniq(url)
         if url:
             code = hashto62(url)
-
             key = base62_encode(code)
 
-            if not kv.set(key, url):
+            sql = """
+            INSERT IGNORE INTO `taobb_urls` (`id`, `key`, `url`, `gmt_create`, `gmt_modified`) VALUES (%s, %s, %s, now(), now());
+            """
+
+        
+            if not db.execute(sql, (code, key, url)) or not kv.set(key, url):
                 err = '内部错误'
 
         else:
