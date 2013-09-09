@@ -1,18 +1,21 @@
-#!/usr/bin/env python
+# vim: ai ts=4 sts=4 et sw=4 ft=python
 
 import string
+import re
 
 from urlparse import urlsplit
 from urlparse import parse_qsl
 from urllib import urlencode
 from urllib import quote
 from urllib import unquote
-import re
+from posixpath import normpath
 
 
 """
 inspired a lot from 
 http://google-safe-browsing.googlecode.com/svn/trunk/python/expression.py
+and
+https://github.com/rbaier/urltools
 """
 
 SAFE_CHARS = ''.join([c for c in (string.digits + string.ascii_letters + string.punctuation) if c not in '%#'])
@@ -25,33 +28,16 @@ def escape(unescaped_str):
 
     return quote(unquoted, SAFE_CHARS)
 
-def popath(path):
-    path = path or '/'
-    path = path if path[0] != '/' else '/' + path
-    path = escape(path)
-    
-    path_components = []
-    for path_component in path.split('/'):
-        if path_component == '..':
-            if len(path_components) > 0:
-                path_components.pop()
-        elif path_component != '.' and path_component != '':
-            path_components.append(path_component)
-    
-    canonical_path = '/' + '/'.join(path_components)
-    if path.endswith('/') and not canonical_path.endswith('/'):
-        canonical_path += '/'
-    return canonical_path
-    
-
-def url_uniq(url):
+def url_normalize(url):
     url = url.replace('\t', '').replace('\r', '').replace('\n', '')
     url = url.strip()
     testurl = urlsplit(url)
-    if not testurl.scheme in ['http','https']:
+    if testurl.scheme == '':
         url = urlsplit('http://' + url)
-    else:
+    elif testurl.scheme in ['http', 'https']:
         url = testurl
+    else:
+        return None
 
     scheme = url.scheme
     if url.netloc:
@@ -83,7 +69,7 @@ def url_uniq(url):
                 port = '' if port == 443 else port
             netloc += ':' + str(port)
         
-        path = netloc + popath(url.path)
+        path = netloc + normpath('/' + url.path + '/').replace('//', '/')
     else:
         return None
 

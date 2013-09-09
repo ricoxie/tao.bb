@@ -3,27 +3,36 @@
 # vim: ai ts=4 sts=4 et sw=4 ft=python
 
 import sys
-from bottle import route, run, static_file, request ,abort, redirect, response, error
+import sae.const
 
+from bottle import route, run, static_file, request ,abort, redirect, response, error
 from base62 import base62_encode, base62_decode
 from hashlib import md5
-from url_uniq import url_uniq
+from url_normalize import url_normalize
 from SAEKVDBPlugin import SAEKVDBPlugin
 from qrcode import make as makeqrcode
 from StringIO import StringIO
 from bottle_mysql import Plugin as MySQLPlugin
-import sae.const
+from urlparse import urlsplit
+
+BLACKLIST = ()
+try:
+    import blacklist
+    BLACKLIST = tuple(blacklist.BLACKLIST)
+except:
+    pass
+
 
 #MAX = 62 ** 5
 MAX = 916132832
+
+kv_plugin = SAEKVDBPlugin()
+mysql_plugin = MySQLPlugin(dbuser = sae.const.MYSQL_USER , dbpass = sae.const.MYSQL_PASS, dbname = sae.const.MYSQL_DB, dbhost = sae.const.MYSQL_HOST , dbport = int(sae.const.MYSQL_PORT))
 
 def hashto62(url):
 	m = md5()
 	m.update(url)
 	return int(m.hexdigest(), 16) % MAX
-
-kv_plugin = SAEKVDBPlugin()
-mysql_plugin = MySQLPlugin(dbuser = sae.const.MYSQL_USER , dbpass = sae.const.MYSQL_PASS, dbname = sae.const.MYSQL_DB, dbhost = sae.const.MYSQL_HOST , dbport = int(sae.const.MYSQL_PORT))
 
 @error(404)
 @route('/')
@@ -75,31 +84,33 @@ def qrcode(key, kv):
 
 @route('/d/save', method='POST', apply=[kv_plugin, mysql_plugin])
 def save(kv, db):
-    key = None
-    err = None
 
     url = request.forms['url']
-    if url:
-        url = url_uniq(url)
-        if url:
-            code = hashto62(url)
-            key = base62_encode(code)
+    if not url:
+        return {'err' : '请输入URL'}
 
-            sql = """
-            INSERT IGNORE INTO `taobb_urls` (`id`, `key`, `url`, `gmt_create`, `gmt_modified`) VALUES (%s, %s, %s, now(), now());
-            """
+    url = url_normalize(url)
+    if not url:
+        return {'err' : '请输入有效的 URL'}
 
-        
-            if not db.execute(sql, (code, key, url)) or not kv.set(key, url):
-                err = '内部错误'
+    surl = urlsplit(url)
+    if surl.netloc.endswith(BLACKLIST):
+        return {'err' : '不支持的域名'}
 
-        else:
-            err = '请输入有效的 URL'
+            
+    code = hashto62(url)
+    key = base62_encode(code)
 
+    sql = """
+    REPLACE INTO `taobb_urls` (`id`, `key`, `url`, `gmt_create`, `gmt_modified`) VALUES (%s, %s, %s, now(), now());
+    """
+
+    if db.execute(sql, (code, key, url)) and kv.set(key, url):
+        return {'key':key , 'err' : None}
     else:
-        err = '请输入URL'
+        return {'err': '内部错误'}
+    
 
-    return {'key':key, 'err':err }
 
 @route('/d/long', method='POST')
 def longurl():
