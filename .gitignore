@@ -38,3 +38,4 @@ site-packages/
 .*
 config.yaml
 index.wsgic
+blacklist.py
