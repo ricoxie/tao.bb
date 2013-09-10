@@ -1,10 +1,13 @@
 from setuptools import setup
 
-setup(name='YourAppName',
+with open('requirements.txt') as f:
+    required = f.read().splitlines()
+
+setup(name='tao.bb',
       version='1.0',
-      description='OpenShift App',
-      author='Your Name',
-      author_email='example@example.com',
-      url='http://www.python.org/sigs/distutils-sig/',
-#      install_requires=['Django>=1.3'],
+      description='tao.bb short url',
+      author='T.G.',
+      author_email='farmer1992@gmail.com',
+      url='http://tao.bb',
+      install_requires=required,
      )
