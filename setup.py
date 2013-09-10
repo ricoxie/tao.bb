@@ -1,6 +1,7 @@
 from setuptools import setup
+import os
 
-with open('requirements.txt') as f:
+with open(os.environ['OPENSHIFT_REPO_DIR'] + 'requirements.txt') as f:
     required = f.read().splitlines()
 
 setup(name='tao.bb',
