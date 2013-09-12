@@ -14,10 +14,10 @@
             float: left;
         }
 
-	.qwidth{
+        .qwidth{
             width: 75%;
             margin: 0 auto 10px;
-	}
+        }
 
         .logo {
             background: url("http://img01.taobaocdn.com/tps/i1/T1trD5XllgXXaur3jj-180-65.png") no-repeat;
@@ -94,6 +94,7 @@
 <div class="container text-center">
     <div id="error" class="alert alert-error hide">
     </div>
+
     <div class="logo">
     </div>
 
@@ -109,7 +110,7 @@
 
         <div>
             <!--<div id="working" style="position: absolute;" class="hide">-->
-                <!--<img src="http://img01.taobaocdn.com/tps/i1/T1cKm3XkRpXXXXXXXX-48-48.gif" />-->
+            <!--<img src="http://img01.taobaocdn.com/tps/i1/T1cKm3XkRpXXXXXXXX-48-48.gif" />-->
             <!--</div>-->
             <button id="work" class="btn btn-taobb btn-large" type="button" data-loading-text="tao.bb ..." autocomplete="off">tao.bb</button>
 
@@ -124,60 +125,36 @@
             </div>
         </div>
     </div>
-    <!--<div class="row">-->
-
-        <!--<div class="span4 offset2">-->
-            <!--<table class="table">-->
-                <!--<tr>-->
-                    <!--<td>http://tao.bb/abc</td>-->
-                <!--</tr>-->
-                <!--<tr>-->
-                    <!--<td>http://tao.bb/abc</td>-->
-                <!--</tr>-->
-                <!--<tr>-->
-                    <!--<td>http://tao.bb/abc</td>-->
-                <!--</tr>-->
-                <!--<tr>-->
-                    <!--<td>http://tao.bb/abc</td>-->
-                <!--</tr>-->
-            <!--</table>-->
-
-        <!--</div>-->
-    </div>
+</div>
 <div id="footer">
     <div class="container text-center">
         <p class="muted"><a href="https://github.com/tg123/tao.bb" target="_blank" >Fork on Github </a> | Powered by <img src="http://static.sae.sina.com.cn/image/poweredby/117X12px.gif"></p>
     </div>
 </div>
-</div>
-
-
 
 <script src="http://cdn.staticfile.org/jquery/2.0.3/jquery.js"></script>
 <script src="http://cdn.staticfile.org/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
 <script src="http://cdn.staticfile.org/zeroclipboard/1.1.7/ZeroClipboard.js"></script>
 <script>
-
     $(function(){
 
+        var clip = new ZeroClipboard($("#copytoclip"), {
+            moviePath: "//cdn.staticfile.org/zeroclipboard/1.1.7/ZeroClipboard.swf",
+            allowScriptAccess : "always",
+            trustedDomains: ["*"]
+        });
 
-	var clip = new ZeroClipboard($("#copytoclip"), {
-		moviePath: "//cdn.staticfile.org/zeroclipboard/1.1.7/ZeroClipboard.swf",
-		allowScriptAccess : "always",
-		trustedDomains: ["*"]
-	});
+        var bridge = $(clip.htmlBridge);
 
-	var bridge = $(clip.htmlBridge);
+        clip.on('complete', function(){
+            showsuccess("已经复制到剪切板");
+        });
 
-	clip.on('complete', function(){
-		showsuccess("已经复制到剪切板");
-	});
-
-	clip.on( 'mouseover', function(client) {
-		if($("#work").is(":visible")){ //hack
-			//bridge.hide();
-		}
-	} );
+        clip.on( 'mouseover', function(client) {
+            if($("#work").is(":visible")){ //hack
+                //bridge.hide();
+            }
+        } );
 
         var input = $("#urlinput");
         var output = $("#urloutput");
@@ -189,22 +166,22 @@
 
         var showerror = function(text){
             var error = $("#error");
-	    error.removeClass("alert-success").addClass("alert-error");
+            error.removeClass("alert-success").addClass("alert-error");
             error.text(text);
             error.slideDown();
         }
 
         var showsuccess = function(text){
             var error = $("#error");
-	    error.removeClass("alert-error").addClass("alert-succuess");
+            error.removeClass("alert-error").addClass("alert-succuess");
             error.text(text);
             error.slideDown();
         }
 
-	var reset = function(){
-		$("#working").hide();
-		$("#work").button("reset");
-	}
+        var reset = function(){
+            $("#working").hide();
+            $("#work").button("reset");
+        }
 
         $("#work").click(function(){
 
@@ -234,23 +211,23 @@
                                             output.val("http://tao.bb/" + key);
                                             $("input").toggle();
                                             $("button").toggle("fast", function(){
-						    reset();
-					    });
+                                                reset();
+                                            });
                                             $("input").select();
-					    bridge.show();
+                                            bridge.show();
                                         }
                                     });
                         }else{
                             showerror(err);
-			    reset();
+                            reset();
                         }
                     });
 
         });
 
         $("#more").click(function(){
-	    bridge.hide();
-	    $("#more").button("loading");
+            bridge.hide();
+            $("#more").button("loading");
             $("#qrcode").popover("hide");
             $("input").toggle();
             input.animate({
@@ -260,7 +237,7 @@
                         complete: function(){
                             $("input").select();
                             $("button").toggle("fast");
-			    $("#more").button("reset");
+                            $("#more").button("reset");
                         }
                     });
         });
@@ -277,17 +254,16 @@
                 }
 
                 url += "/qrcode.png";
-                //url = "http://ta0bb.sinaapp.com/Y06rW/qrcode.png";
 
                 var div = $("<div></div>");
                 div.append($("<span>正在加载二维码.....</span>"))
                 var img = $('<img />');
                 img.prop("src", url);
-		img.hide();
+                img.hide();
 
                 img.load(function(){
                     div.find("span").remove();
-		    img.show();
+                    img.show();
                 });
 
                 div.css("width", 188);
@@ -305,10 +281,10 @@
                 showerror('您访问的网址：1.不存在 2.不安全(如钓鱼) 3.传播禁止的内容 而无法访问 ');
             }
 
-	    if (/MSIE (\d+\.\d+);/.test(navigator.userAgent)){		
-	    	$("#qrcode").remove(); // fuckyou ie
-	    	$("#copytoclip").remove(); // fuckyou ie
-	    }
+            if (/MSIE (\d+\.\d+);/.test(navigator.userAgent)){
+                $("#qrcode").remove(); // fuckyou ie
+                $("#copytoclip").remove(); // fuckyou ie
+            }
         })();
     });
 
