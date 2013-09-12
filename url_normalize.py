@@ -2,6 +2,8 @@
 
 import string
 import re
+import struct
+import socket
 
 from urlparse import urlsplit
 from urlparse import parse_qsl
@@ -47,8 +49,10 @@ def url_normalize(url):
             password = url.password
 
             hostname = [part for part in url.hostname.split('.') if part]
-            if len(hostname) < 2:
-                return None
+
+            if len(hostname) < 2: # convert long ipv4
+                hostname = [socket.inet_ntoa(struct.pack('!L', long(hostname[0])))]
+
             hostname = '.'.join(hostname)
             hostname = hostname.decode('utf-8').encode('idna').lower()
         except:
