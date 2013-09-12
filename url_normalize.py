@@ -21,6 +21,7 @@ https://github.com/rbaier/urltools
 """
 
 SAFE_CHARS = ''.join([c for c in (string.digits + string.ascii_letters + string.punctuation) if c not in '%#'])
+VALID_DOMAIN = re.compile('^[a-zA-Z\d-]{1,63}(\.[a-zA-Z\d-]{1,63})*$')
 
 def escape(unescaped_str):
     unquoted = unquote(unescaped_str)
@@ -42,25 +43,39 @@ def url_normalize(url):
         return None
 
     scheme = url.scheme
+
     if url.netloc:
         try:
-            port = url.port
+            hostname = url.hostname.rstrip(':')
+
+            port = None
+            try:
+                port = url.port
+            except ValueError:
+                pass
+
             username = url.username
             password = url.password
 
-            hostname = [part for part in url.hostname.split('.') if part]
+            hostname = [part for part in hostname.split('.') if part]
 
-            if len(hostname) < 2: # convert long ipv4
+            # convert long ipv4
+            # here will fail domains like localhost
+            if len(hostname) < 2:
                 hostname = [socket.inet_ntoa(struct.pack('!L', long(hostname[0])))]
 
             hostname = '.'.join(hostname)
             hostname = hostname.decode('utf-8').encode('idna').lower()
+
+            if not VALID_DOMAIN.match(hostname):
+                return None
+
         except:
             return None
 
 
         netloc = hostname
-        if username or password:
+        if username:
             netloc = '@' + netloc    
             if password:
                 netloc = ':' + password + netloc
@@ -71,7 +86,9 @@ def url_normalize(url):
                 port = '' if port == 80 else port
             elif scheme == 'https':
                 port = '' if port == 443 else port
-            netloc += ':' + str(port)
+
+            if port:
+                netloc += ':' + str(port)
         
         path = netloc + normpath('/' + url.path + '/').replace('//', '/')
     else:
