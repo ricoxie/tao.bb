@@ -15,6 +15,7 @@ from StringIO import StringIO
 from bottle_mysql import Plugin as MySQLPlugin
 from urlparse import urlsplit
 from sqlparams import SQLParams
+from untinyurl import untiny
 
 BLACKLIST = ()
 try:
@@ -129,7 +130,7 @@ def longurl():
         if not wanted.startswith('http://'):
 	    wanted = 'http://' + wanted
 	
-	#longurl = real_url(wanted)
+	longurl = untiny(wanted)
 
     return { 'wanted':wanted,  'long': longurl}
 

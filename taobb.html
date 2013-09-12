@@ -282,6 +282,35 @@
             }
         });
 
+        var expandtimer = false;
+        var expand = function(){
+
+            clearTimeout(expandtimer);
+            expandtimer = setTimeout(function(){
+                $("#error").slideUp();
+                var url = $.trim(input.val());
+                if(url.length > 0 && url.length < 25){
+
+                    $.post("/d/long",{url: $.trim(input.val())})
+                            .success(function(data){
+                                var longurl = data["long"];
+                                var wanted = data["wanted"];
+                                if(longurl && longurl != wanted && $.trim(input.val()) == wanted){
+                                    var error = $("#error");
+                                    error.removeClass("alert-error").addClass("alert-succuess");
+                                    error.html("");
+                                    var a = $('<a href="javascript:;">点我展开短网址 <em>'+ wanted + '</em></a>');
+                                    a.click(function(){ input.val(longurl);});
+                                    error.append(a);
+                                    error.slideDown();
+                                }
+                            })
+                };
+            }, 500);
+        }
+
+        input.keydown(expand).change(expand);
+
         (function(){
             var wanted = location.pathname.replace( /^\/+|\/+$/g, '' );
             if (wanted){
