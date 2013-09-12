@@ -156,6 +156,13 @@
             }
         } );
 
+        var killpaste = setTimeout(function(){
+            $("#copytoclip").remove(); // fuckyou ie
+        }, 2000);
+        clip.on( 'load', function(client) {
+            clearTimeout(killpaste);
+        } );
+
         var input = $("#urlinput");
         var output = $("#urloutput");
 
