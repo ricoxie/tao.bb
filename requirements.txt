@@ -2,3 +2,5 @@ bottle==0.11.6
 qrcode==4.0.1
 six==1.4.1
 bottle-mysql==0.1.2
+sqlparams==1.0.3
+untinyurl==0.1

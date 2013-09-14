@@ -14,6 +14,8 @@ from qrcode import make as makeqrcode
 from StringIO import StringIO
 from bottle_mysql import Plugin as MySQLPlugin
 from urlparse import urlsplit
+from sqlparams import SQLParams
+from untinyurl import untiny
 
 BLACKLIST = ()
 try:
@@ -102,10 +104,18 @@ def save(kv, db):
     key = base62_encode(code)
 
     sql = """
-    REPLACE INTO `taobb_urls` (`id`, `key`, `url`, `gmt_create`, `gmt_modified`) VALUES (%s, %s, %s, now(), now());
+    INSERT INTO `taobb_urls` (`id`, `key`, `url`, `gmt_create`, `gmt_modified`) VALUES (:id, :key, :url, now(), now())
+    ON DUPLICATE KEY UPDATE `gmt_modified` = now()
     """
 
-    if db.execute(sql, (code, key, url)) and kv.set(key, url):
+    sp = SQLParams('named', 'format')
+    sql, params = sp.format(sql, { 
+        'id' : code,
+        'key' : key,
+        'url' : url,
+    })
+
+    if db.execute(sql, params) and kv.set(key, url):
         return {'key':key , 'err' : None}
     else:
         return {'err': '内部错误'}
@@ -120,7 +130,7 @@ def longurl():
         if not wanted.startswith('http://'):
 	    wanted = 'http://' + wanted
 	
-	#longurl = real_url(wanted)
+	longurl = untiny(wanted)
 
     return { 'wanted':wanted,  'long': longurl}
 
