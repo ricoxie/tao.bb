@@ -28,7 +28,7 @@ WHITELIST = ()
 try:
     import whitelist
 
-    WHITELIST = tuple(whitelist.WHITELIST)
+    WHITELIST = tuple(['.' + d for d in whitelist.WHITELIST])
 except:
     pass
 
@@ -175,11 +175,10 @@ def save(db):
 
     surl = urlsplit(url)
     hostname = surl.hostname
-    hostname = '.'.join(hostname.split('.')[-2:]) # TODO only xx.xx support
     if hostname.endswith(BLACKLIST):
         return {'err': '不支持的域名'}
 
-    if len(WHITELIST) > 0 and not hostname.endswith(WHITELIST):
+    if len(WHITELIST) > 0 and not ('.' + hostname).endswith(WHITELIST):
         return {'err': '仅支持阿里巴巴旗下网站域名'}
 
     code = hashto62(url)
